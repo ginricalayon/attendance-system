@@ -15,7 +15,9 @@ export async function configureEventSettings(request: ICreateSettingsRequest) {
 
     const eventData = eventDoc.data();
 
-    const settingsRef = db.collection(DBCollections.SETTINGS).doc();
+    const settingsRef = db
+      .collection(DBCollections.SETTINGS)
+      .doc("afAlVv2KI0uFFxATwX8C");
 
     await settingsRef.set({
       ...request,

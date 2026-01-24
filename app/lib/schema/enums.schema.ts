@@ -1,5 +1,6 @@
 export enum DBCollections {
   STUDENTS = "students",
+  EVENTS = "events",
 }
 
 export enum Departments {
@@ -13,4 +14,9 @@ export enum Departments {
 export enum OrderBy {
   ASC = "asc",
   DESC = "desc",
+}
+
+export enum EventTypes {
+  LOGIN = "login",
+  LOGOUT = "logout",
 }

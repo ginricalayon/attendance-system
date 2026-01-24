@@ -2,6 +2,7 @@ export enum DBCollections {
   STUDENTS = "students",
   EVENTS = "events",
   SETTINGS = "settings",
+  ATTENDANCE = "attendance",
 }
 
 export enum Departments {

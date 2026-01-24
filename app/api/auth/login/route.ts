@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
  * /api/auth/login:
  *   post:
  *     summary: Authenticate user
- *     description: Verifies a Firebase ID token and returns user information
+ *     description: Verifies a Firebase ID token, sets an HTTP-only auth cookie, and returns user information
  *     tags:
  *       - Authentication
  *     requestBody:
@@ -25,7 +25,12 @@ import { NextRequest, NextResponse } from "next/server";
  *                 description: Firebase ID token from client authentication
  *     responses:
  *       200:
- *         description: Authentication successful
+ *         description: Authentication successful. Sets token cookie.
+ *         headers:
+ *           Set-Cookie:
+ *             description: HTTP-only authentication cookie
+ *             schema:
+ *               type: string
  *         content:
  *           application/json:
  *             schema:
@@ -58,7 +63,22 @@ export async function POST(request: NextRequest) {
 
     const result = await login(validatedData);
 
-    return NextResponse.json({ success: true, data: result }, { status: 200 });
+    const response = NextResponse.json(
+      { success: true, data: result },
+      { status: 200 }
+    );
+
+    response.cookies.set({
+      name: "token",
+      value: validatedData.token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     return handleError(error);
   }

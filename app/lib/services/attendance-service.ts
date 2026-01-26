@@ -4,7 +4,7 @@ import {
   ICreateAttendanceRequest,
   IGetAttendancesQuery,
 } from "../schema/attendance.schema";
-import { DBCollections } from "../schema/enums.schema";
+import { DBCollections, Departments, EventTypes } from "../schema/enums.schema";
 import { getEventSettings } from "./settings-service";
 import {
   DocumentData,
@@ -153,5 +153,112 @@ export async function deleteAttendances() {
     if (error instanceof ApiError) throw error;
     logger.error("Failed to delete attendances", { error });
     throw new ApiError("Failed to delete attendances", 500, "INTERNAL_ERROR");
+  }
+}
+
+interface DepartmentResult {
+  department: string;
+  total_students: number;
+  total_login: number;
+  total_logout: number;
+  total_complete: number;
+  percentage: number;
+}
+
+export async function getResults() {
+  try {
+    const settings = await getEventSettings();
+    const { event_id } = settings;
+
+    const departments = Object.values(Departments);
+    const results: DepartmentResult[] = [];
+
+    for (const department of departments) {
+      // Get total students count for this department
+      const studentsSnapshot = await db
+        .collection(DBCollections.STUDENTS)
+        .where("department", "==", department)
+        .count()
+        .get();
+      const totalStudents = studentsSnapshot.data().count;
+
+      // Get login attendance records for this event and department
+      const loginSnapshot = await db
+        .collection(DBCollections.ATTENDANCE)
+        .where("event_id", "==", event_id)
+        .where("department", "==", department)
+        .where("type", "==", EventTypes.LOGIN)
+        .get();
+      const totalLogin = loginSnapshot.docs.length;
+
+      // Get logout attendance records for this event and department
+      const logoutSnapshot = await db
+        .collection(DBCollections.ATTENDANCE)
+        .where("event_id", "==", event_id)
+        .where("department", "==", department)
+        .where("type", "==", EventTypes.LOGOUT)
+        .get();
+      const totalLogout = logoutSnapshot.docs.length;
+
+      // Get students who have both login AND logout
+      const loginStudentNumbers = new Set(
+        loginSnapshot.docs.map((doc) => doc.data().student_number)
+      );
+
+      // Count students who have both login and logout
+      let totalComplete = 0;
+      for (const doc of logoutSnapshot.docs) {
+        if (loginStudentNumbers.has(doc.data().student_number)) {
+          totalComplete++;
+        }
+      }
+
+      // Calculate percentage (students with complete attendance / total students)
+      const percentage =
+        totalStudents > 0
+          ? Math.round((totalComplete / totalStudents) * 100 * 100) / 100
+          : 0;
+
+      results.push({
+        department,
+        total_students: totalStudents,
+        total_login: totalLogin,
+        total_logout: totalLogout,
+        total_complete: totalComplete,
+        percentage,
+      });
+    }
+
+    // Calculate overall totals
+    const overall = results.reduce(
+      (acc, curr) => ({
+        total_students: acc.total_students + curr.total_students,
+        total_login: acc.total_login + curr.total_login,
+        total_logout: acc.total_logout + curr.total_logout,
+        total_complete: acc.total_complete + curr.total_complete,
+      }),
+      { total_students: 0, total_login: 0, total_logout: 0, total_complete: 0 }
+    );
+
+    const overallPercentage =
+      overall.total_students > 0
+        ? Math.round(
+            (overall.total_complete / overall.total_students) * 100 * 100
+          ) / 100
+        : 0;
+
+    return {
+      event_id,
+      event_name: settings.name,
+      departments: results,
+      overall: {
+        ...overall,
+        percentage: overallPercentage,
+      },
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    logger.error("Failed to get results", { error });
+    throw new ApiError("Failed to get results", 500, "INTERNAL_ERROR");
   }
 }

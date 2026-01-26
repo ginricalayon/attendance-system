@@ -171,63 +171,94 @@ export async function getResults() {
     const { event_id } = settings;
 
     const departments = Object.values(Departments);
-    const results: DepartmentResult[] = [];
 
-    for (const department of departments) {
-      // Get total students count for this department
-      const studentsSnapshot = await db
-        .collection(DBCollections.STUDENTS)
-        .where("department", "==", department)
-        .count()
-        .get();
-      const totalStudents = studentsSnapshot.data().count;
+    // Execute all independent queries in parallel
+    const [studentCountResults, loginSnapshot, logoutSnapshot] =
+      await Promise.all([
+        // Fetch all student counts per department in parallel
+        Promise.all(
+          departments.map((department) =>
+            db
+              .collection(DBCollections.STUDENTS)
+              .where("department", "==", department)
+              .count()
+              .get()
+              .then((snapshot) => ({
+                department,
+                count: snapshot.data().count,
+              }))
+          )
+        ),
+        // Fetch all login attendance records for this event (single query)
+        db
+          .collection(DBCollections.ATTENDANCE)
+          .where("event_id", "==", event_id)
+          .where("type", "==", EventTypes.LOGIN)
+          .get(),
+        // Fetch all logout attendance records for this event (single query)
+        db
+          .collection(DBCollections.ATTENDANCE)
+          .where("event_id", "==", event_id)
+          .where("type", "==", EventTypes.LOGOUT)
+          .get(),
+      ]);
 
-      // Get login attendance records for this event and department
-      const loginSnapshot = await db
-        .collection(DBCollections.ATTENDANCE)
-        .where("event_id", "==", event_id)
-        .where("department", "==", department)
-        .where("type", "==", EventTypes.LOGIN)
-        .get();
-      const totalLogin = loginSnapshot.docs.length;
+    // Create lookup map for student counts by department
+    const studentCountByDepartment = new Map(
+      studentCountResults.map(({ department, count }) => [department, count])
+    );
 
-      // Get logout attendance records for this event and department
-      const logoutSnapshot = await db
-        .collection(DBCollections.ATTENDANCE)
-        .where("event_id", "==", event_id)
-        .where("department", "==", department)
-        .where("type", "==", EventTypes.LOGOUT)
-        .get();
-      const totalLogout = logoutSnapshot.docs.length;
+    // Group login records by department using student numbers (Set for O(1) lookup)
+    const loginByDepartment = new Map<string, Set<string>>();
+    for (const doc of loginSnapshot.docs) {
+      const { department, student_number } = doc.data();
+      if (!loginByDepartment.has(department)) {
+        loginByDepartment.set(department, new Set());
+      }
+      loginByDepartment.get(department)!.add(student_number);
+    }
 
-      // Get students who have both login AND logout
-      const loginStudentNumbers = new Set(
-        loginSnapshot.docs.map((doc) => doc.data().student_number)
-      );
+    // Group logout records by department
+    const logoutByDepartment = new Map<string, Set<string>>();
+    for (const doc of logoutSnapshot.docs) {
+      const { department, student_number } = doc.data();
+      if (!logoutByDepartment.has(department)) {
+        logoutByDepartment.set(department, new Set());
+      }
+      logoutByDepartment.get(department)!.add(student_number);
+    }
 
-      // Count students who have both login and logout
+    // Calculate results for each department using in-memory data
+    const results: DepartmentResult[] = departments.map((department) => {
+      const totalStudents = studentCountByDepartment.get(department) ?? 0;
+      const loginStudents = loginByDepartment.get(department) ?? new Set();
+      const logoutStudents = logoutByDepartment.get(department) ?? new Set();
+
+      const totalLogin = loginStudents.size;
+      const totalLogout = logoutStudents.size;
+
+      // Count students who have both login and logout (Set intersection)
       let totalComplete = 0;
-      for (const doc of logoutSnapshot.docs) {
-        if (loginStudentNumbers.has(doc.data().student_number)) {
+      for (const studentNumber of logoutStudents) {
+        if (loginStudents.has(studentNumber)) {
           totalComplete++;
         }
       }
 
-      // Calculate percentage (students with complete attendance / total students)
       const percentage =
         totalStudents > 0
           ? Math.round((totalComplete / totalStudents) * 100 * 100) / 100
           : 0;
 
-      results.push({
+      return {
         department,
         total_students: totalStudents,
         total_login: totalLogin,
         total_logout: totalLogout,
         total_complete: totalComplete,
         percentage,
-      });
-    }
+      };
+    });
 
     // Calculate overall totals
     const overall = results.reduce(

@@ -66,7 +66,7 @@ function parseArgs(): { email: string; password: string; apiUrl: string } {
 // Initialize Firebase
 function initializeFirebase() {
   const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
     projectId: process.env.FIREBASE_PROJECT_ID,
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
@@ -78,7 +78,7 @@ function initializeFirebase() {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
     console.error("Error: Firebase configuration is missing.");
     console.error("Required environment variables:");
-    console.error("  FIREBASE_API_KEY");
+    console.error("  NEXT_PUBLIC_FIREBASE_API_KEY");
     console.error("  FIREBASE_PROJECT_ID");
     process.exit(1);
   }

@@ -3,6 +3,7 @@ export enum DBCollections {
   EVENTS = "events",
   SETTINGS = "settings",
   ATTENDANCE = "attendance",
+  EVENT_STATS = "event_stats",
 }
 
 export enum Departments {

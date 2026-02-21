@@ -97,6 +97,7 @@ export async function getStudents(params: IGetStudentsQuery) {
 
     return {
       data: students.docs.map((doc) => ({
+        student_id: doc.id,
         ...doc.data(),
         created_at: doc.data().created_at.toDate().toISOString(),
         updated_at: doc.data().updated_at.toDate().toISOString(),
@@ -108,7 +109,7 @@ export async function getStudents(params: IGetStudentsQuery) {
     };
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError("An unexpected error occurred", 500, "INTERNAL_ERROR");
+    throw new ApiError(error instanceof Error ? error.message : "An unexpected error occurred", 500, "INTERNAL_ERROR");
   }
 }
 

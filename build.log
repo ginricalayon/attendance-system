@@ -1,0 +1,44 @@
+
+> attendance-system@0.1.0 build /Users/ginricalayon/Desktop/attendance-system
+> next build
+
+▲ Next.js 16.1.4 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.5s
+  Running TypeScript ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/17) ...
+  Generating static pages using 9 workers (4/17) 
+  Generating static pages using 9 workers (8/17) 
+  Generating static pages using 9 workers (12/17) 
+✓ Generating static pages using 9 workers (17/17) in 209.3ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/attendance
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/session
+├ ƒ /api/docs
+├ ƒ /api/event
+├ ƒ /api/event/[id]
+├ ƒ /api/result
+├ ƒ /api/settings
+├ ƒ /api/student
+├ ƒ /api/student/[id]
+├ ƒ /api/student/import
+├ ƒ /api/swagger
+├ ○ /login
+└ ○ /students
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

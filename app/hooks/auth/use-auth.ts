@@ -14,7 +14,7 @@ export function useAuth() {
   
   const logoutMutation = useMutation({
     mutationFn: authLogout,
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.setQueryData(["session"], null);
       router.push("/login"); // Redirect to login page on logout
     }

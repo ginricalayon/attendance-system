@@ -18,6 +18,13 @@ export function middleware(request: NextRequest) {
   // 1. If the user has a token and tries to access an auth route,
   // redirect them to the dashboard/home page.
   if (isAuthRoute && token) {
+    // If they were redirected here due to an expired token, clear the dead token cookie server-side to break the loop
+    if (request.nextUrl.searchParams.get('expired') === 'true') {
+      const response = NextResponse.next();
+      response.cookies.delete('token');
+      return response;
+    }
+
     return NextResponse.redirect(new URL('/', request.url));
   }
 

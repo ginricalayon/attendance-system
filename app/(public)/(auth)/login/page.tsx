@@ -8,7 +8,9 @@ export default function LoginPage() {
       title="Welcome back"
       description="Enter your credentials below to log into your account"
     >
-      <LoginForm />
+      <React.Suspense fallback={<div>Loading form...</div>}>
+        <LoginForm />
+      </React.Suspense>
     </AuthLayout>
   );
 }

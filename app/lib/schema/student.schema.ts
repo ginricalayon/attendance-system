@@ -11,7 +11,7 @@ export const StudentSchema = z.object({
       message: "Middle initial must be empty or a single uppercase letter",
     })
     .optional(),
-  department: z.enum(Departments, { message: "Department is required" }),
+  department: z.nativeEnum(Departments, { message: "Department is required" }),
   barcode: z.string().min(1, { message: "Barcode is required" }),
 });
 
@@ -27,9 +27,9 @@ export const GetStudentsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   sort_by: z.string().optional().default("created_at"),
-  order_by: z.enum(OrderBy).default(OrderBy.DESC),
+  order_by: z.nativeEnum(OrderBy).default(OrderBy.DESC),
   search: z.string().optional(),
-  department: z.enum(Departments).optional(),
+  department: z.nativeEnum(Departments).optional(),
 });
 
 export type IGetStudentsQuery = z.infer<typeof GetStudentsQuerySchema>;

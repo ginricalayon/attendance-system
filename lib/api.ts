@@ -11,3 +11,37 @@ export const api = axios.create({
   },
   withCredentials: true, // For session cookies
 });
+
+// Response interceptor for catching global 401 Unauthorized errors
+api.interceptors.response.use(
+  (response) => {
+    // Return a successful response back to the calling service
+    return response;
+  },
+  async (error) => {
+    // Check if the error is 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      console.warn("API responded with 401 Unauthorized, logging user out...");
+      
+      try {
+        // Attempt to call the logout endpoint if the token itself is expired to clear the session cookie
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api"}/auth/logout`,
+          {},
+          { withCredentials: true }
+        );
+      } catch (logoutError) {
+        // Ignore errors during logout (the credential might already be fully wiped or invalid anyway)
+      }
+
+      // Hard redirect to the login page
+      // Using window.location to ensure we act outside the React router context and force a full reload
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.href = "/login?expired=true";
+      }
+    }
+
+    // Return any error which is not due to authentication back to the calling service
+    return Promise.reject(error);
+  }
+);

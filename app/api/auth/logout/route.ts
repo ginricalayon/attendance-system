@@ -1,4 +1,3 @@
-import { AuthenticatedRequest, requireAuth } from "@/app/lib/middleware/auth";
 import { handleError } from "@/app/utils/handle-error";
 import { NextResponse } from "next/server";
 
@@ -6,7 +5,7 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/auth/logout:
  *   post:
- *     summary: Logout user
+ *     summary: Logout user 
  *     description: Clears the authentication cookie
  *     tags:
  *       - Authentication
@@ -25,7 +24,7 @@ import { NextResponse } from "next/server";
  *                   type: string
  *                   example: Logged out successfully
  */
-export const POST = requireAuth(async (_request: AuthenticatedRequest) => {
+export const POST = async () => {
   try {
     const response = NextResponse.json(
       { success: true, message: "Logged out successfully" },
@@ -46,4 +45,4 @@ export const POST = requireAuth(async (_request: AuthenticatedRequest) => {
   } catch (error) {
     return handleError(error);
   }
-});
+};

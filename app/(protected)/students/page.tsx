@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Upload } from "lucide-react";
+import { GenerateBarcodesButton } from "./_components/generate-barcodes-button";
 import { Button } from "@/components/ui/button";
 import { StudentTable } from "./_components/student-table";
 import {
@@ -18,6 +19,7 @@ export default function StudentsPage() {
   const [isImportOpen, setIsImportOpen] = useState(false);
   
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [filters, setFilters] = useState<{ search?: string; department?: string }>({});
 
   const handleEdit = (student: any) => {
     setSelectedStudent(student);
@@ -49,6 +51,7 @@ export default function StudentsPage() {
         </div>
         
         <div className="flex items-center space-x-3">
+          <GenerateBarcodesButton search={filters.search} department={filters.department} />
           <Button 
             variant="outline" 
             onClick={() => setIsImportOpen(true)}
@@ -69,7 +72,7 @@ export default function StudentsPage() {
 
       <div className="rounded-2xl border bg-card/50 shadow-sm backdrop-blur-xl flex flex-col overflow-hidden">
         <div className="p-1">
-          <StudentTable onEdit={handleEdit} onDelete={handleDelete} />
+          <StudentTable onEdit={handleEdit} onDelete={handleDelete} onFiltersChange={setFilters} />
         </div>
       </div>
 

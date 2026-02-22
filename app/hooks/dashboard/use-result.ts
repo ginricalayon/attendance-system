@@ -39,7 +39,7 @@ export function useResult() {
   const query = useQuery({
     queryKey: ["dashboard-results"],
     queryFn: getResult,
-    staleTime: Infinity, // Never automatically refetch since we rely on web-sockets now
+    refetchInterval: 3000, // Poll every 3 seconds for real-time updates
   });
 
   useEffect(() => {

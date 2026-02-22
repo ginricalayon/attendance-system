@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { GraduationCap, LayoutDashboard, Users, UserCheck, Settings, LogOut, Loader2 } from "lucide-react";
+import { GraduationCap, LayoutDashboard, Users, UserCheck, Settings, LogOut, Loader2, Calendar, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -34,6 +34,11 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Events",
+    url: "/events",
+    icon: Calendar,
+  },
+  {
     title: "Students",
     url: "/students",
     icon: Users,
@@ -42,6 +47,11 @@ const navItems = [
     title: "Attendance",
     url: "/attendance",
     icon: UserCheck,
+  },
+  {
+    title: "Records",
+    url: "/records",
+    icon: ClipboardList,
   },
 ];
 

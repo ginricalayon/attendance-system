@@ -41,3 +41,8 @@ export async function importStudents(file: File) {
   });
   return response.data;
 }
+
+export async function getAllStudents(params?: { search?: string; department?: string }) {
+  const response = await api.get("/student/all", { params });
+  return response.data;
+}

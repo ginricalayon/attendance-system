@@ -117,6 +117,7 @@ export async function getAttendances(params: IGetAttendancesQuery) {
 
     return {
       data: attendances.docs.map((doc) => ({
+        attendance_id: doc.id,
         ...doc.data(),
         created_at: doc.data().created_at.toDate().toISOString(),
         updated_at: doc.data().updated_at.toDate().toISOString(),
@@ -130,6 +131,47 @@ export async function getAttendances(params: IGetAttendancesQuery) {
     if (error instanceof ApiError) throw error;
     logger.error("Failed to get attendances", { error });
     throw new ApiError("Failed to get attendances", 500, "INTERNAL_ERROR");
+  }
+}
+
+export async function getAllAttendances(params: IGetAttendancesQuery) {
+  try {
+    let query: Query<DocumentData> = db.collection(DBCollections.ATTENDANCE);
+
+    if (params.search) {
+      query = query.where(
+        Filter.or(
+          Filter.where("student_number", "==", params.search),
+          Filter.where("last_name", "==", params.search),
+          Filter.where("first_name", "==", params.search)
+        )
+      );
+    }
+
+    if (params.department) {
+      query = query.where("department", "==", params.department);
+    }
+
+    if (params.type) {
+      query = query.where("type", "==", params.type);
+    }
+
+    if (params.sort_by) {
+      query = query.orderBy(params.sort_by, params.order_by);
+    }
+
+    const attendances = await query.get();
+
+    return attendances.docs.map((doc) => ({
+      attendance_id: doc.id,
+      ...doc.data(),
+      created_at: doc.data().created_at.toDate().toISOString(),
+      updated_at: doc.data().updated_at.toDate().toISOString(),
+    }));
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    logger.error("Failed to get all attendances", { error });
+    throw new ApiError("Failed to get all attendances", 500, "INTERNAL_ERROR");
   }
 }
 

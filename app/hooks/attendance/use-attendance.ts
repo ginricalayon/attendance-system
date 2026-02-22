@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createAttendance, getAttendances } from "@/app/services/attendance.service";
+import { createAttendance, getAttendances, deleteAttendances } from "@/app/services/attendance.service";
 import { IGetAttendancesQuery } from "@/app/lib/schema/attendance.schema";
 
 export const attendanceKeys = {
@@ -20,6 +20,17 @@ export function useCreateAttendance() {
 
   return useMutation({
     mutationFn: createAttendance,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+    },
+  });
+}
+
+export function useDeleteAttendances() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAttendances,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
     },

@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "@/components/ui/sonner";
+import { SessionExpiredDialog } from "@/components/session-expired-dialog";
 
 export default function RootLayout({
   children,
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         <Toaster />
+        <SessionExpiredDialog />
       </body>
     </html>
   );

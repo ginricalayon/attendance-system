@@ -13,3 +13,15 @@ export async function getSettings(): Promise<{ success: boolean; data: ISettings
     throw error;
   }
 }
+
+export async function configureSettings(data: { event_id: string; type: string }): Promise<{ success: boolean; data: ISettings }> {
+  try {
+    const response = await api.post("/settings", data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.data) {
+      throw new Error(error.response.data.message || 'Failed to configure settings');
+    }
+    throw error;
+  }
+}

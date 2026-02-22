@@ -29,9 +29,10 @@ import { cn } from "@/lib/utils";
 interface StudentTableProps {
   onEdit: (student: any) => void;
   onDelete: (student: any) => void;
+  onFiltersChange?: (filters: { search?: string; department?: string }) => void;
 }
 
-export function StudentTable({ onEdit, onDelete }: StudentTableProps) {
+export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTableProps) {
   const [params, setParams] = useState<IGetStudentsQuery>({
     page: 1,
     limit: 10,
@@ -44,16 +45,20 @@ export function StudentTable({ onEdit, onDelete }: StudentTableProps) {
   const { data, isLoading, isError } = useStudents(params);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setParams({ ...params, search: e.target.value || undefined, page: 1 });
+    const search = e.target.value || undefined;
+    setParams({ ...params, search, page: 1 });
+    onFiltersChange?.({ search, department: params.department });
   };
 
   const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
+    const department = value === "" ? undefined : (value as any);
     setParams({
       ...params,
-      department: value === "" ? undefined : (value as any),
+      department,
       page: 1,
     });
+    onFiltersChange?.({ search: params.search, department });
   };
 
   const students = data?.data || [];

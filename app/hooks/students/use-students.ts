@@ -5,7 +5,8 @@ import {
   createStudent, 
   updateStudent, 
   deleteStudent, 
-  importStudents 
+  importStudents,
+  getAllStudents, 
 } from "@/app/services/student.service";
 import { IGetStudentsQuery } from "@/app/lib/schema/student.schema";
 
@@ -74,5 +75,13 @@ export function useImportStudents() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() });
     },
+  });
+}
+
+export function useAllStudents(params?: { search?: string; department?: string }, enabled = false) {
+  return useQuery({
+    queryKey: [...studentKeys.all, "all", params] as const,
+    queryFn: () => getAllStudents(params),
+    enabled,
   });
 }

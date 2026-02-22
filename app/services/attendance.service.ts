@@ -31,3 +31,8 @@ export async function getAttendances(
   const response = await api.get("/attendance", { params });
   return response.data;
 }
+
+export async function deleteAttendances(): Promise<{ success: boolean; data: any }> {
+  const response = await api.delete("/attendance");
+  return response.data;
+}

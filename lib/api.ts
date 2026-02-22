@@ -34,10 +34,10 @@ api.interceptors.response.use(
         // Ignore errors during logout (the credential might already be fully wiped or invalid anyway)
       }
 
-      // Hard redirect to the login page
-      // Using window.location to ensure we act outside the React router context and force a full reload
+      // Instead of an immediate hard redirect, dispatch a custom event
+      // so the UI can show a graceful "Session Expired" dialog.
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-        window.location.href = "/login?expired=true";
+        window.dispatchEvent(new Event("session-expired"));
       }
     }
 

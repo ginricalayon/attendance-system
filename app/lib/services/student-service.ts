@@ -113,6 +113,43 @@ export async function getStudents(params: IGetStudentsQuery) {
   }
 }
 
+export async function getAllStudents(params?: { search?: string; department?: string }) {
+  try {
+    let query: Query<DocumentData> = db.collection(DBCollections.STUDENTS);
+
+    if (params?.search) {
+      query = query.where(
+        Filter.or(
+          Filter.where("student_number", "==", params.search),
+          Filter.where("last_name", "==", params.search),
+          Filter.where("first_name", "==", params.search)
+        )
+      );
+    }
+
+    if (params?.department) {
+      query = query.where("department", "==", params.department);
+    }
+
+    query = query.orderBy("last_name", "asc");
+
+    const students = await query.get();
+
+    return students.docs.map((doc) => ({
+      student_id: doc.id,
+      student_number: doc.data().student_number,
+      last_name: doc.data().last_name,
+      first_name: doc.data().first_name,
+      middle_initial: doc.data().middle_initial,
+      department: doc.data().department,
+      barcode: doc.data().barcode,
+    }));
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(error instanceof Error ? error.message : "An unexpected error occurred", 500, "INTERNAL_ERROR");
+  }
+}
+
 export async function updateStudent(
   request: IUpdateStudentRequest,
   id: string

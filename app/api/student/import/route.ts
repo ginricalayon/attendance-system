@@ -80,9 +80,9 @@ import { NextResponse } from "next/server";
  * @swagger
  * /api/student/import:
  *   post:
- *     summary: Import students from CSV file
+ *     summary: Import students from CSV or Excel file
  *     description: |
- *       Bulk import students from a CSV file. The CSV must have a header row and contain the following columns in order:
+ *       Bulk import students from a CSV or Excel (.xls, .xlsx) file. The file must have a header row and contain the following columns in order:
  *       1. student_number
  *       2. last_name
  *       3. first_name
@@ -106,7 +106,7 @@ import { NextResponse } from "next/server";
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: CSV file containing student data
+ *                 description: CSV or Excel (.xls, .xlsx) file containing student data
  *     responses:
  *       200:
  *         description: Import completed (may include partial failures)

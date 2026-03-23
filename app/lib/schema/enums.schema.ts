@@ -12,6 +12,8 @@ export enum Departments {
   CBAA = "CBAA",
   COHM = "COHM",
   SHS = "SHS",
+  BSIT = "BSIT",
+  BSCS = "BSCS",
 }
 
 export enum OrderBy {

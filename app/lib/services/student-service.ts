@@ -18,6 +18,7 @@ import { CSVRow } from "../schema/csv.schema";
 import { CSVRowSchema } from "../schema/csv.schema";
 import { ZodIssue } from "zod";
 import { generateBarcodeBase64 } from "@/app/utils/generate-barcode";
+import * as XLSX from "xlsx";
 
 export async function registerStudent(request: ICreateStudentRequest) {
   try {
@@ -303,24 +304,61 @@ function parseCSV(csvContent: string): string[][] {
   });
 }
 
+function parseExcel(buffer: ArrayBuffer): string[][] {
+  const uint8 = new Uint8Array(buffer);
+  const workbook = XLSX.read(uint8, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data: unknown[][] = XLSX.utils.sheet_to_json(sheet, {
+    header: 1,
+    defval: "",
+    raw: false,
+  });
+  return data
+    .map((row) => row.map((cell) => String(cell ?? "").trim()))
+    .filter((row) => row.some((cell) => cell !== ""));
+}
+
 export async function importStudentsFromCSV(file: File) {
-  if (!file.name.endsWith(".csv")) {
-    throw new ApiError("File must be a CSV file", 400, "INVALID_FILE_TYPE");
+  const fileName = file.name.toLowerCase();
+  const isCSV = fileName.endsWith(".csv");
+  const isExcel = fileName.endsWith(".xls") || fileName.endsWith(".xlsx");
+
+  if (!isCSV && !isExcel) {
+    throw new ApiError("File must be a CSV or Excel (.xls, .xlsx) file", 400, "INVALID_FILE_TYPE");
   }
 
-  const csvContent = await file.text();
-  const rows = parseCSV(csvContent);
+  let rows: string[][];
+  if (isExcel) {
+    const buffer = await file.arrayBuffer();
+    rows = parseExcel(buffer);
+  } else {
+    const csvContent = await file.text();
+    rows = parseCSV(csvContent);
+  }
 
-  if (rows.length < 2) {
+  if (rows.length < 1) {
     throw new ApiError(
-      "CSV file must contain a header row and at least one data row",
+      "File must contain at least one data row",
       400,
       "EMPTY_CSV"
     );
   }
 
-  // Skip header row (first row)
-  const dataRows = rows.slice(1);
+  // Auto-detect header row: if the first row contains known header names, skip it
+  const headerKeywords = ["student_number", "last_name", "first_name", "middle_initial", "department", "name", "number"];
+  const firstRowLower = rows[0].map((cell) => cell.toLowerCase());
+  const hasHeader = firstRowLower.some((cell) => headerKeywords.includes(cell));
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const rowOffset = hasHeader ? 2 : 1; // offset for error reporting
+
+  if (dataRows.length === 0) {
+    throw new ApiError(
+      "File must contain at least one data row",
+      400,
+      "EMPTY_CSV"
+    );
+  }
 
   const validatedRows: { row: number; data: CSVRow }[] = [];
   const validationErrors: { row: number; errors: ZodIssue[] }[] = [];
@@ -329,7 +367,7 @@ export async function importStudentsFromCSV(file: File) {
   // Validate each row
   for (let i = 0; i < dataRows.length; i++) {
     const row = dataRows[i];
-    const rowNumber = i + 2; // +2 because: +1 for 0-index, +1 for skipped header
+    const rowNumber = i + rowOffset; // adjust based on whether header was detected
 
     // Skip rows where all values are empty (handles trailing empty rows in CSV)
     const isEmptyRow = row.every((value) => value.trim() === "");

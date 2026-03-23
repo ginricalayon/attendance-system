@@ -64,10 +64,9 @@ export function AddStudentDialog({
         form.reset();
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.error || "Failed to add student. Ensure student number is unique.");
-        form.setError("root", {
-          message: error.response?.data?.error || "Failed to add student. Ensure student number is unique.",
-        });
+        const msg = typeof error.response?.data?.error === "string" ? error.response.data.error : "Failed to add student. Ensure student number is unique.";
+        toast.error(msg);
+        form.setError("root", { message: msg });
       },
     });
   };
@@ -156,6 +155,8 @@ export function AddStudentDialog({
                       <option value={Departments.CBAA}>CBAA</option>
                       <option value={Departments.COHM}>COHM</option>
                       <option value={Departments.SHS}>SHS</option>
+                      <option value={Departments.BSIT}>BSIT</option>
+                      <option value={Departments.BSCS}>BSCS</option>
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -250,10 +251,9 @@ export function EditStudentDialog({
           form.reset();
         },
         onError: (error: any) => {
-          toast.error(error.response?.data?.error || "Failed to update student.");
-          form.setError("root", {
-            message: error.response?.data?.error || "Failed to update student.",
-          });
+          const msg = typeof error.response?.data?.error === "string" ? error.response.data.error : "Failed to update student.";
+          toast.error(msg);
+          form.setError("root", { message: msg });
         },
       }
     );
@@ -343,6 +343,8 @@ export function EditStudentDialog({
                       <option value={Departments.CBAA}>CBAA</option>
                       <option value={Departments.COHM}>COHM</option>
                       <option value={Departments.SHS}>SHS</option>
+                      <option value={Departments.BSIT}>BSIT</option>
+                      <option value={Departments.BSCS}>BSCS</option>
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -396,8 +398,9 @@ export function DeleteStudentDialog({
         onOpenChange(false);
       },
       onError: (err: any) => {
-        toast.error(err.response?.data?.error || "Failed to delete student");
-        setError(err.response?.data?.error || "Failed to delete student");
+        const msg = typeof err.response?.data?.error === "string" ? err.response.data.error : "Failed to delete student";
+        toast.error(msg);
+        setError(msg);
       },
     });
   };
@@ -454,8 +457,12 @@ export function ImportStudentsDialog({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.endsWith(".csv")) {
-        setError("Please select a .csv file");
+      const allowedExtensions = [".csv", ".xls", ".xlsx"];
+      const hasValidExtension = allowedExtensions.some((ext) =>
+        selectedFile.name.toLowerCase().endsWith(ext)
+      );
+      if (!hasValidExtension) {
+        setError("Please select a .csv, .xls, or .xlsx file");
         setFile(null);
       } else {
         setFile(selectedFile);
@@ -472,20 +479,20 @@ export function ImportStudentsDialog({
     }
 
     mutate(file, {
-      onSuccess: (response: any) => {
-        const data = response.data;
+      onSuccess: (data: any) => {
         if (data && data.failed === 0 && (!data.validation_errors || data.validation_errors.length === 0) && (!data.import_errors || data.import_errors.length === 0)) {
           toast.success(`Import completed: ${data.successful} students added successfully`);
           handleClose();
         } else {
           toast.success("Import completed but with some errors");
-          setResult(response.data);
+          setResult(data);
           handleClose();
         }
       },
       onError: (err: any) => {
-        toast.error(err.response?.data?.error || "Failed to import students");
-        setError(err.response?.data?.error || "Failed to import students");
+        const msg = typeof err.response?.data?.error === "string" ? err.response.data.error : "Failed to import students";
+        toast.error(msg);
+        setError(msg);
       },
     });
   };
@@ -502,10 +509,10 @@ export function ImportStudentsDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Import Students via CSV</DialogTitle>
+          <DialogTitle>Import Students</DialogTitle>
           <DialogDescription>
-            Upload a CSV file containing student data. The CSV must have headers
-            and columns in this exact order: 
+            Upload a CSV or Excel (.xls, .xlsx) file containing student data. The file must have headers
+            and columns in this exact order:
             student_number, last_name, first_name, middle_initial, department.
           </DialogDescription>
         </DialogHeader>
@@ -517,7 +524,7 @@ export function ImportStudentsDialog({
                 ref={fileInputRef}
                 id="csv"
                 type="file"
-                accept=".csv"
+                accept=".csv,.xls,.xlsx"
                 onChange={handleFileChange}
                 disabled={isPending}
                 />

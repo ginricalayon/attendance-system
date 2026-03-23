@@ -38,6 +38,7 @@ export async function importStudents(file: File) {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    timeout: 300000, // 5 minutes for large imports
   });
   return response.data;
 }

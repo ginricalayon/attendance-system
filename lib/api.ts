@@ -4,7 +4,7 @@ import axios from "axios";
 export const api = axios.create({
   // Use /api as base for internal Next.js routes
   // Can be overridden via environment variable for external backends
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   timeout: 30000, // 30 seconds
   headers: {
     "Content-Type": "application/json",
@@ -26,7 +26,7 @@ api.interceptors.response.use(
       try {
         // Attempt to call the logout endpoint if the token itself is expired to clear the session cookie
         await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api"}/auth/logout`,
+          `${process.env.NEXT_PUBLIC_API_URL || "/api"}/auth/logout`,
           {},
           { withCredentials: true }
         );

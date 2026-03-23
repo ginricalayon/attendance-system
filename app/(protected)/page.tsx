@@ -1,15 +1,25 @@
 "use client";
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Users, LogIn, LogOut, CheckCircle2, Loader2, AlertCircle, Activity, Sparkles, Trophy } from "lucide-react"
+import { Users, LogIn, LogOut, CheckCircle2, Loader2, AlertCircle, Activity, Sparkles, Trophy, RefreshCw } from "lucide-react"
 import { useResult } from "@/app/hooks/dashboard/use-result"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
+const REFRESH_OPTIONS = [
+  { value: "off", label: "Off" },
+  { value: "5000", label: "5s" },
+  { value: "10000", label: "10s" },
+  { value: "15000", label: "15s" },
+] as const;
+
 export default function DashboardPage() {
-  const { data, isPending, error } = useResult();
+  const [refreshInterval, setRefreshInterval] = useState<number | undefined>(undefined);
+  const { data, isPending, error } = useResult(refreshInterval);
 
   if (isPending) {
     return (
@@ -59,7 +69,7 @@ export default function DashboardPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between space-y-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
@@ -74,6 +84,24 @@ export default function DashboardPage() {
               </>
             ) : "Overview of your system activity and metrics."}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <RefreshCw className={cn("h-4 w-4 text-muted-foreground", refreshInterval && "animate-spin text-primary")} />
+          <Select
+            value={refreshInterval ? String(refreshInterval) : "off"}
+            onValueChange={(value) => setRefreshInterval(value === "off" ? undefined : Number(value))}
+          >
+            <SelectTrigger className="w-[130px] h-9 rounded-lg text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {REFRESH_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.value === "off" ? "Refresh: Off" : `Every ${option.label}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

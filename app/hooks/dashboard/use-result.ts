@@ -33,13 +33,13 @@ export interface ResultsApiResponse {
   data: ResultsResponse;
 }
 
-export function useResult() {
+export function useResult(refetchInterval?: number) {
   const queryClient = useQueryClient();
-  
+
   const query = useQuery({
     queryKey: ["dashboard-results"],
     queryFn: getResult,
-    refetchInterval: 3000, // Poll every 3 seconds for real-time updates
+    refetchInterval: refetchInterval || false,
   });
 
   useEffect(() => {

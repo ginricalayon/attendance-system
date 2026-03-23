@@ -26,8 +26,8 @@ export default function AuthLayout({ children, title, description }: AuthLayoutP
             <div className="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/20 transition-transform group-hover:scale-105 group-hover:bg-white/20">
               <GraduationCap className="h-6 w-6 text-white" />
             </div>
-            <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-              Attendance<span className="text-primary font-light">System</span>
+            <span className="font-extrabold text-2xl tracking-tight text-white">
+              Attendance<span className="text-white/60 font-light">System</span>
             </span>
           </Link>
         </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,11 +10,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertCircle } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 
 export function SessionExpiredDialog() {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const handleSessionExpired = () => {
@@ -39,24 +37,27 @@ export function SessionExpiredDialog() {
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogContent className="w-[380px] rounded-2xl">
-        <AlertDialogHeader>
-          <div className="mx-auto mt-4 mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-500" />
+      <AlertDialogContent className="w-[340px] rounded-[16px] p-5 sm:max-w-[380px] sm:p-6">
+        <AlertDialogHeader className="flex flex-row items-start gap-4 space-y-0 relative text-left">
+          <div className="flex shrink-0 mt-0.5 h-10 w-10 items-center justify-center rounded-full bg-muted/60 text-foreground/80">
+            <LockKeyhole className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <AlertDialogTitle className="text-center text-xl font-bold">
-            Session Expired
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-center text-base">
-            Your login session has expired. For your security, please log in again to continue.
-          </AlertDialogDescription>
+          <div className="flex flex-col gap-1.5">
+            <AlertDialogTitle className="text-lg font-semibold tracking-tight">
+              Session Expired
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-snug text-muted-foreground">
+              Your connection timed out. Please log in again.
+            </AlertDialogDescription>
+          </div>
         </AlertDialogHeader>
-        <AlertDialogFooter className="sm:justify-center mt-6 mb-2">
+        
+        <AlertDialogFooter className="mt-4 sm:justify-end">
           <AlertDialogAction 
             onClick={handleLoginClick}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl h-11"
+            className="w-full sm:w-auto rounded-lg h-9 px-4 text-sm font-medium transition-all"
           >
-            Go to Login
+            Log in again
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

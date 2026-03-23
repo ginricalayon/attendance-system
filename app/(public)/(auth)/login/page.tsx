@@ -1,6 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
 import LoginForm from "./(components)/forms/login-form";
 import AuthLayout from "../(components)/layout/auth-layout";
+
+export const metadata: Metadata = {
+  title: "Login",
+};
 
 export default function LoginPage() {
   return (

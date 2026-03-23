@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./(components)/app-sidebar"
 import { DynamicBreadcrumb } from "./(components)/dynamic-breadcrumb"

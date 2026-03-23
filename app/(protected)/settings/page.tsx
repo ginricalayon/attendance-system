@@ -77,11 +77,11 @@ export default function SettingsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between space-y-4 mb-8">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
               System Settings
             </h2>
           </div>
-          <p className="text-muted-foreground text-lg flex items-center gap-2">
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg flex items-center gap-2">
             Configure the live active event mapped to the barcode scanners.
           </p>
         </div>
@@ -91,8 +91,8 @@ export default function SettingsPage() {
         {/* Active Event Configuration */}
         <Card className="border-primary/20 bg-card/80 backdrop-blur-xl shadow-lg border-t-4 border-t-primary">
           <CardHeader className="pb-6">
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Settings2 className="h-6 w-6 text-primary" />
+            <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Settings2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Active Event Configuration
             </CardTitle>
             <CardDescription className="text-base">

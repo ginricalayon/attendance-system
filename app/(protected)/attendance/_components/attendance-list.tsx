@@ -45,20 +45,20 @@ export function AttendanceList() {
           <Table>
             <TableHeader className="bg-muted/40 sticky top-0 backdrop-blur-sm z-10">
               <TableRow className="border-b border-border/50 hover:bg-transparent">
-                <TableHead className="w-[120px] font-semibold">Time</TableHead>
+                <TableHead className="w-[100px] sm:w-[120px] font-semibold">Time</TableHead>
                 <TableHead className="font-semibold">Student</TableHead>
-                <TableHead className="font-semibold">ID Number</TableHead>
-                <TableHead className="text-right font-semibold pr-6">Action</TableHead>
+                <TableHead className="font-semibold hidden md:table-cell">ID Number</TableHead>
+                <TableHead className="text-right font-semibold pr-4 sm:pr-6">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 7 }).map((_, i) => (
                   <TableRow key={i} className="border-b/50">
-                    <TableCell><Skeleton className="h-5 w-[80px] rounded-md" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-[140px] rounded-md" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-[90px] rounded-md" /></TableCell>
-                    <TableCell className="text-right pr-6"><Skeleton className="h-6 w-[70px] ml-auto rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-[60px] sm:w-[80px] rounded-md" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-[100px] sm:w-[140px] rounded-md" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-[90px] rounded-md" /></TableCell>
+                    <TableCell className="text-right pr-4 sm:pr-6"><Skeleton className="h-6 w-[50px] sm:w-[70px] ml-auto rounded-full" /></TableCell>
                   </TableRow>
                 ))
               ) : attendances.length === 0 ? (
@@ -78,16 +78,16 @@ export function AttendanceList() {
                     className="group border-b/50 hover:bg-muted/40 transition-colors cursor-default"
                   >
                     <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground tabular-nums flex items-center h-full">
-                      <Clock className="w-3 h-3 mr-1.5 opacity-50" />
+                      <Clock className="w-3 h-3 mr-1.5 opacity-50 hidden sm:block" />
                       {new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </TableCell>
-                    <TableCell className="font-semibold text-foreground/90">
+                    <TableCell className="font-semibold text-foreground/90 text-sm">
                       {record.last_name}, {record.first_name} {record.middle_initial ? `${record.middle_initial}.` : ""}
                     </TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
+                    <TableCell className="font-mono text-sm text-muted-foreground hidden md:table-cell">
                       {record.student_number}
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                    <TableCell className="text-right pr-4 sm:pr-6">
                       <span className={`inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase transition-colors
                         ${record.type === 'login' 
                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500/25' 

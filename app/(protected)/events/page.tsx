@@ -22,11 +22,11 @@ export default function EventsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between space-y-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
               Events Directory
             </h2>
           </div>
-          <p className="text-muted-foreground text-lg flex items-center gap-2">
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg flex items-center gap-2">
             Manage the master list of all application events and configurations.
           </p>
         </div>

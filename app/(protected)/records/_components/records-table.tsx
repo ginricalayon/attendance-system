@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 export function RecordsTable() {
   const [params, setParams] = useState<IGetAttendancesQuery>({
     page: 1,
-    limit: 15, // Display 15 records per page to optimize space
+    limit: 20,
     search: undefined,
     department: undefined,
     type: undefined,
@@ -125,22 +125,22 @@ export function RecordsTable() {
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="border-b/50 hover:bg-transparent">
-              <TableHead className="font-semibold px-6"><div className="flex items-center gap-2"><Hash className="w-4 h-4 text-muted-foreground" /> Student Number</div></TableHead>
-              <TableHead className="font-semibold"><div className="flex items-center gap-2"><UserCircle2 className="w-4 h-4 text-muted-foreground" /> Name</div></TableHead>
-              <TableHead className="font-semibold"><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-muted-foreground" /> Department</div></TableHead>
-              <TableHead className="font-semibold"><div className="flex items-center gap-2"><Clock className="w-4 h-4 text-muted-foreground" /> Action Type</div></TableHead>
-              <TableHead className="font-semibold pr-6"><div className="flex items-center gap-2 justify-end"><CalendarDays className="w-4 h-4 text-muted-foreground" /> Timestamp</div></TableHead>
+              <TableHead className="font-semibold px-4 sm:px-6"><div className="flex items-center gap-2"><Hash className="w-4 h-4 text-muted-foreground hidden sm:block" /> Student Number</div></TableHead>
+              <TableHead className="font-semibold"><div className="flex items-center gap-2"><UserCircle2 className="w-4 h-4 text-muted-foreground hidden sm:block" /> Name</div></TableHead>
+              <TableHead className="font-semibold hidden md:table-cell"><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-muted-foreground" /> Department</div></TableHead>
+              <TableHead className="font-semibold"><div className="flex items-center gap-2"><Clock className="w-4 h-4 text-muted-foreground hidden sm:block" /> Type</div></TableHead>
+              <TableHead className="font-semibold pr-4 sm:pr-6 hidden sm:table-cell"><div className="flex items-center gap-2 justify-end"><CalendarDays className="w-4 h-4 text-muted-foreground" /> Timestamp</div></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               Array.from({ length: 10 }).map((_, i) => (
                 <TableRow key={i} className="border-b/50">
-                  <TableCell className="px-6 py-4"><Skeleton className="h-5 w-[120px] rounded-md" /></TableCell>
-                  <TableCell className="py-4"><Skeleton className="h-5 w-[180px] rounded-md" /></TableCell>
-                  <TableCell className="py-4"><Skeleton className="h-5 w-[60px] rounded-md" /></TableCell>
-                  <TableCell className="py-4"><Skeleton className="h-6 w-[80px] rounded-full" /></TableCell>
-                  <TableCell className="text-right pr-6 py-4"><Skeleton className="h-5 w-[160px] rounded-md ml-auto" /></TableCell>
+                  <TableCell className="px-4 sm:px-6 py-4"><Skeleton className="h-5 w-[80px] sm:w-[120px] rounded-md" /></TableCell>
+                  <TableCell className="py-4"><Skeleton className="h-5 w-[120px] sm:w-[180px] rounded-md" /></TableCell>
+                  <TableCell className="py-4 hidden md:table-cell"><Skeleton className="h-5 w-[60px] rounded-md" /></TableCell>
+                  <TableCell className="py-4"><Skeleton className="h-6 w-[60px] sm:w-[80px] rounded-full" /></TableCell>
+                  <TableCell className="text-right pr-4 sm:pr-6 py-4 hidden sm:table-cell"><Skeleton className="h-5 w-[120px] sm:w-[160px] rounded-md ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : isError ? (
@@ -161,29 +161,29 @@ export function RecordsTable() {
             ) : (
               records.map((record: any) => (
                 <TableRow key={record.attendance_id} className="group border-b/50 hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-mono text-sm px-6 font-medium text-muted-foreground group-hover:text-foreground transition-colors">{record.student_number}</TableCell>
-                  <TableCell className="font-semibold text-foreground/90">
+                  <TableCell className="font-mono text-xs sm:text-sm px-4 sm:px-6 font-medium text-muted-foreground group-hover:text-foreground transition-colors">{record.student_number}</TableCell>
+                  <TableCell className="font-semibold text-foreground/90 text-sm">
                     {record.last_name}, {record.first_name} {record.middle_initial ? `${record.middle_initial}.` : ""}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span className="inline-flex items-center rounded-full bg-secondary/50 px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground border border-secondary transition-colors justify-center min-w-[3rem]">
                       {record.department}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(
-                        "font-semibold capitalize border tracking-wide",
-                        record.type === 'login' 
-                          ? "bg-green-500/10 text-green-600 border-green-500/20" 
+                        "font-semibold capitalize border tracking-wide text-xs",
+                        record.type === 'login'
+                          ? "bg-green-500/10 text-green-600 border-green-500/20"
                           : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                       )}
                     >
                       {record.type}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right pr-6 font-medium text-muted-foreground">
+                  <TableCell className="text-right pr-4 sm:pr-6 font-medium text-muted-foreground hidden sm:table-cell">
                     {formatDate(record.created_at)}
                   </TableCell>
                 </TableRow>
@@ -194,11 +194,11 @@ export function RecordsTable() {
       </div>
 
       {pagination && (
-        <div className="flex items-center justify-between px-6 py-4 bg-muted/10 border-t border-border/50">
-          <div className="text-sm text-muted-foreground font-medium">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-muted/10 border-t border-border/50">
+          <div className="text-xs sm:text-sm text-muted-foreground font-medium">
             Page {pagination.page} of {pagination.total_pages} <span className="opacity-70">({pagination.total} total)</span>
           </div>
-          <div className="space-x-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"

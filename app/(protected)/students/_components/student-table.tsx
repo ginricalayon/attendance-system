@@ -35,7 +35,7 @@ interface StudentTableProps {
 export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTableProps) {
   const [params, setParams] = useState<IGetStudentsQuery>({
     page: 1,
-    limit: 10,
+    limit: 20,
     search: undefined,
     department: undefined,
     sort_by: "created_at",
@@ -100,20 +100,20 @@ export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTable
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="border-b/50 hover:bg-transparent">
-              <TableHead className="font-semibold px-6"><div className="flex items-center gap-2"><Hash className="w-4 h-4 text-muted-foreground" /> Student Number</div></TableHead>
-              <TableHead className="font-semibold"><div className="flex items-center gap-2"><UserCircle2 className="w-4 h-4 text-muted-foreground" /> Name</div></TableHead>
-              <TableHead className="font-semibold"><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-muted-foreground" /> Department</div></TableHead>
-              <TableHead className="text-right font-semibold pr-6">Actions</TableHead>
+              <TableHead className="font-semibold px-4 sm:px-6"><div className="flex items-center gap-2"><Hash className="w-4 h-4 text-muted-foreground hidden sm:block" /> Student No.</div></TableHead>
+              <TableHead className="font-semibold"><div className="flex items-center gap-2"><UserCircle2 className="w-4 h-4 text-muted-foreground hidden sm:block" /> Name</div></TableHead>
+              <TableHead className="font-semibold hidden md:table-cell"><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-muted-foreground" /> Department</div></TableHead>
+              <TableHead className="text-right font-semibold pr-4 sm:pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i} className="border-b/50">
-                  <TableCell className="px-6"><Skeleton className="h-5 w-[120px] rounded-md" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[180px] rounded-md" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[90px] rounded-md" /></TableCell>
-                  <TableCell className="text-right pr-6"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
+                  <TableCell className="px-4 sm:px-6"><Skeleton className="h-5 w-[80px] sm:w-[120px] rounded-md" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-[120px] sm:w-[180px] rounded-md" /></TableCell>
+                  <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-[90px] rounded-md" /></TableCell>
+                  <TableCell className="text-right pr-4 sm:pr-6"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
                 </TableRow>
               ))
             ) : students.length === 0 ? (
@@ -128,16 +128,16 @@ export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTable
             ) : (
               students.map((student: any) => (
                 <TableRow key={student.student_number} className="group border-b/50 hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-mono text-sm px-6 font-medium text-muted-foreground group-hover:text-foreground transition-colors">{student.student_number}</TableCell>
-                  <TableCell className="font-semibold text-foreground/90">
+                  <TableCell className="font-mono text-xs sm:text-sm px-4 sm:px-6 font-medium text-muted-foreground group-hover:text-foreground transition-colors">{student.student_number}</TableCell>
+                  <TableCell className="font-semibold text-foreground/90 text-sm">
                     {student.last_name}, {student.first_name} {student.middle_initial ? `${student.middle_initial}.` : ""}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span className="inline-flex items-center rounded-full bg-secondary/50 px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground border border-secondary transition-colors group-hover:bg-secondary justify-center min-w-[3rem]">
                       {student.department}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right pr-6">
+                  <TableCell className="text-right pr-4 sm:pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -170,11 +170,11 @@ export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTable
       </div>
 
       {pagination && (
-        <div className="flex items-center justify-between px-6 py-4 bg-muted/10 border-t border-border/50">
-          <div className="text-sm text-muted-foreground font-medium">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-muted/10 border-t border-border/50">
+          <div className="text-xs sm:text-sm text-muted-foreground font-medium">
             Page {pagination.page} of {pagination.total_pages} <span className="opacity-70">({pagination.total} total)</span>
           </div>
-          <div className="space-x-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"

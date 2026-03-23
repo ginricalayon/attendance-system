@@ -107,13 +107,14 @@ export async function getAttendances(params: IGetAttendancesQuery) {
       query = query.orderBy(params.sort_by, params.order_by);
     }
 
-    const attendances = await query.get();
-
     const total = await query.count().get();
     const totalDocs = total.data().count;
     const totalPages = Math.ceil(totalDocs / params.limit);
     const hasNextPage = params.page < totalPages;
     const hasPreviousPage = params.page > 1;
+
+    const offset = (params.page - 1) * params.limit;
+    const attendances = await query.offset(offset).limit(params.limit).get();
 
     return {
       data: attendances.docs.map((doc) => ({

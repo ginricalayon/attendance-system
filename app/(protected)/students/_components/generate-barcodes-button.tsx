@@ -203,7 +203,7 @@ export function GenerateBarcodesButton({ search, department }: GenerateBarcodesB
       ) : (
         <Barcode className="mr-2 h-4 w-4" />
       )}
-      {isLoading ? "Loading..." : "Generate Barcodes"}
+      {isLoading ? "Loading..." : <><span className="hidden sm:inline">Generate Barcodes</span><span className="sm:hidden">Barcodes</span></>}
     </Button>
   );
 }

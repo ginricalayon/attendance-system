@@ -32,40 +32,40 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex-1 p-6 md:p-10 space-y-8 bg-gradient-to-br from-background via-background/95 to-muted/20">
-      
+    <div className="relative min-h-[calc(100vh-4rem)] flex-1 p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-8 bg-gradient-to-br from-background via-background/95 to-muted/20 overflow-x-hidden">
+
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between space-y-4">
+      <div className="space-y-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Students Directory
-            </h2>
-          </div>
-          <p className="text-muted-foreground text-lg flex items-center gap-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Students Directory
+          </h2>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
             Manage the complete roster of registered students.
           </p>
         </div>
-        
-        <div className="flex items-center space-x-3">
+
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <GenerateBarcodesButton search={filters.search} department={filters.department} />
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsImportOpen(true)}
             className="rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors"
           >
             <Upload className="mr-2 h-4 w-4" />
-            Import CSV
+            <span className="hidden sm:inline">Import CSV</span>
+            <span className="sm:hidden">Import</span>
           </Button>
-          <Button 
+          <Button
             onClick={() => setIsAddOpen(true)}
-            className="rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
+            className="rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add Student
+            <span className="hidden sm:inline">Add Student</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>

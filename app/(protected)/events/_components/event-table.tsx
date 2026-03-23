@@ -71,20 +71,20 @@ export function EventTable({ onEdit, onDelete }: EventTableProps) {
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="border-b/50 hover:bg-transparent">
-              <TableHead className="font-semibold px-6">Event Name</TableHead>
-              <TableHead className="font-semibold md:table-cell hidden">Description</TableHead>
-              <TableHead className="font-semibold">Created On</TableHead>
-              <TableHead className="text-right font-semibold pr-6">Actions</TableHead>
+              <TableHead className="font-semibold px-4 sm:px-6">Event Name</TableHead>
+              <TableHead className="font-semibold hidden md:table-cell">Description</TableHead>
+              <TableHead className="font-semibold hidden sm:table-cell">Created On</TableHead>
+              <TableHead className="text-right font-semibold pr-4 sm:pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i} className="hover:bg-transparent">
-                  <TableCell className="px-6 py-4"><Skeleton className="h-6 w-48 rounded-lg" /></TableCell>
-                  <TableCell className="px-6 py-4 md:table-cell hidden"><Skeleton className="h-4 w-64 rounded-lg" /></TableCell>
-                  <TableCell className="px-6 py-4"><Skeleton className="h-5 w-24 rounded-lg" /></TableCell>
-                  <TableCell className="px-6 py-4 text-right"><Skeleton className="h-8 w-8 rounded-lg ml-auto" /></TableCell>
+                  <TableCell className="px-4 sm:px-6 py-4"><Skeleton className="h-6 w-32 sm:w-48 rounded-lg" /></TableCell>
+                  <TableCell className="px-6 py-4 hidden md:table-cell"><Skeleton className="h-4 w-64 rounded-lg" /></TableCell>
+                  <TableCell className="px-6 py-4 hidden sm:table-cell"><Skeleton className="h-5 w-24 rounded-lg" /></TableCell>
+                  <TableCell className="px-4 sm:px-6 py-4 text-right"><Skeleton className="h-8 w-8 rounded-lg ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : isError ? (
@@ -113,18 +113,18 @@ export function EventTable({ onEdit, onDelete }: EventTableProps) {
                   key={event.event_id} 
                   className="group border-b/50 hover:bg-muted/30 transition-colors"
                 >
-                  <TableCell className="font-medium px-6 text-foreground/90">
+                  <TableCell className="font-medium px-4 sm:px-6 text-foreground/90">
                     {event.name}
                   </TableCell>
-                  <TableCell className="md:table-cell hidden text-muted-foreground max-w-xs truncate">
+                  <TableCell className="hidden md:table-cell text-muted-foreground max-w-xs truncate">
                     {event.description || <span className="italic opacity-50">No description provided</span>}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Badge variant="outline" className="font-medium text-foreground/80 py-1 bg-background">
                       {event.created_at ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date(event.created_at)) : 'Unknown Date'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right pr-6">
+                  <TableCell className="text-right pr-4 sm:pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0 opacity-50 group-hover:opacity-100 transition-opacity">

@@ -124,7 +124,7 @@ export function AttendanceScanner({ disabled }: { disabled: boolean }) {
               onFocus={handleFocus}
               onBlur={handleBlur}
               className={cn(
-                "relative text-center text-2xl tracking-widest font-mono py-8 rounded-xl border-2 transition-all duration-300",
+                "relative text-center text-lg sm:text-2xl tracking-widest font-mono py-6 sm:py-8 rounded-xl border-2 transition-all duration-300",
                 isFocused 
                   ? "border-primary bg-background shadow-inner ring-4 ring-primary/10 placeholder:text-muted-foreground/50" 
                   : "bg-muted/30 border-muted placeholder:text-muted-foreground/70"

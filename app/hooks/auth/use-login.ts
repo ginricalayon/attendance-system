@@ -19,7 +19,7 @@ export function useLogin() {
         );
         const token = await userCredentials.user.getIdToken();
 
-        const response = await login({ token, remember_me: data.remember_me });
+        const response = await login({ token, remember_me: data.remember_me ?? false });
         return response;
       } catch (error) {
         throw error;

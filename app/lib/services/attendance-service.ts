@@ -62,6 +62,33 @@ export async function createAttendance(data: ICreateAttendanceRequest) {
       updated_at: FieldValue.serverTimestamp(),
     });
 
+    // Upsert event_stats tracking document (source of truth for login/logout status)
+    const eventStatsDocId = `${data.student_number}_${event_id}`;
+    const eventStatsRef = db
+      .collection(DBCollections.EVENT_STATS)
+      .doc(eventStatsDocId);
+    const eventStatsDoc = await eventStatsRef.get();
+
+    if (eventStatsDoc.exists) {
+      await eventStatsRef.update({
+        ...(type === EventTypes.LOGIN
+          ? { is_login: true }
+          : { is_logout: true }),
+        type,
+        updated_at: FieldValue.serverTimestamp(),
+      });
+    } else {
+      await eventStatsRef.set({
+        student_number: data.student_number,
+        event_id,
+        is_login: type === EventTypes.LOGIN,
+        is_logout: type === EventTypes.LOGOUT,
+        type,
+        created_at: FieldValue.serverTimestamp(),
+        updated_at: FieldValue.serverTimestamp(),
+      });
+    }
+
     return {
       attendance_id: attendanceRef.id,
       student_number: data.student_number,
@@ -178,12 +205,19 @@ export async function getAllAttendances(params: IGetAttendancesQuery) {
 
 export async function deleteAttendances() {
   try {
-    const attendances = await db.collection(DBCollections.ATTENDANCE).get();
+    const [attendances, eventStats] = await Promise.all([
+      db.collection(DBCollections.ATTENDANCE).get(),
+      db.collection(DBCollections.EVENT_STATS).get(),
+    ]);
 
     const batch = db.batch();
 
     for (const attendance of attendances.docs) {
       batch.delete(attendance.ref);
+    }
+
+    for (const stat of eventStats.docs) {
+      batch.delete(stat.ref);
     }
 
     await batch.commit();

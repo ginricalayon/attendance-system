@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Departments, OrderBy } from "./enums.schema";
+import { AttendanceStatus, Departments, OrderBy } from "./enums.schema";
 
 export const StudentSchema = z.object({
   student_number: z.string().min(1, { message: "Student number is required" }),
@@ -30,6 +30,8 @@ export const GetStudentsQuerySchema = z.object({
   order_by: z.nativeEnum(OrderBy).default(OrderBy.DESC),
   search: z.string().optional(),
   department: z.nativeEnum(Departments).optional(),
+  attendance_status: z.nativeEnum(AttendanceStatus).optional(),
+  event_id: z.string().optional(),
 });
 
 export type IGetStudentsQuery = z.infer<typeof GetStudentsQuerySchema>;

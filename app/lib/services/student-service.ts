@@ -7,7 +7,7 @@ import {
   ICreateStudentRequest,
 } from "../schema/student.schema";
 import { db } from "../firebase/admin";
-import { DBCollections } from "../schema/enums.schema";
+import { AttendanceStatus, DBCollections } from "../schema/enums.schema";
 import {
   DocumentData,
   FieldValue,
@@ -68,6 +68,11 @@ export async function registerStudent(request: ICreateStudentRequest) {
 
 export async function getStudents(params: IGetStudentsQuery) {
   try {
+    // If attendance_status filter is active, we need to cross-reference with event_stats
+    if (params.attendance_status && params.event_id) {
+      return await getStudentsWithAttendanceFilter(params);
+    }
+
     let query: Query<DocumentData> = db.collection(DBCollections.STUDENTS);
 
     if (params.search) {
@@ -113,6 +118,85 @@ export async function getStudents(params: IGetStudentsQuery) {
     if (error instanceof ApiError) throw error;
     throw new ApiError(error instanceof Error ? error.message : "An unexpected error occurred", 500, "INTERNAL_ERROR");
   }
+}
+
+async function getStudentsWithAttendanceFilter(params: IGetStudentsQuery) {
+  // Fetch event_stats for the given event to know each student's login/logout status
+  const eventStatsSnapshot = await db
+    .collection(DBCollections.EVENT_STATS)
+    .where("event_id", "==", params.event_id)
+    .get();
+
+  // Build maps of student attendance status
+  const loginSet = new Set<string>();
+  const logoutSet = new Set<string>();
+  for (const doc of eventStatsSnapshot.docs) {
+    const data = doc.data();
+    if (data.is_login) loginSet.add(data.student_number);
+    if (data.is_logout) logoutSet.add(data.student_number);
+  }
+
+  // Fetch all students matching search/department filters (no pagination yet — we paginate in memory)
+  let query: Query<DocumentData> = db.collection(DBCollections.STUDENTS);
+
+  if (params.search) {
+    query = query.where(
+      Filter.or(
+        Filter.where("student_number", "==", params.search),
+        Filter.where("last_name", "==", params.search),
+        Filter.where("first_name", "==", params.search)
+      )
+    );
+  }
+
+  if (params.department) {
+    query = query.where("department", "==", params.department);
+  }
+
+  if (params.sort_by) {
+    query = query.orderBy(params.sort_by, params.order_by);
+  }
+
+  const allStudents = await query.get();
+
+  // Filter students by attendance status in memory
+  const filtered = allStudents.docs.filter((doc) => {
+    const studentNumber = doc.data().student_number;
+    const hasLogin = loginSet.has(studentNumber);
+    const hasLogout = logoutSet.has(studentNumber);
+
+    switch (params.attendance_status) {
+      case AttendanceStatus.NOT_LOGIN:
+        return !hasLogin;
+      case AttendanceStatus.NOT_LOGOUT:
+        return !hasLogout;
+      case AttendanceStatus.COMPLETE:
+        return hasLogin && hasLogout;
+      default:
+        return true;
+    }
+  });
+
+  // Apply pagination in memory
+  const totalDocs = filtered.length;
+  const totalPages = Math.ceil(totalDocs / params.limit);
+  const hasNextPage = params.page < totalPages;
+  const hasPreviousPage = params.page > 1;
+  const offset = (params.page - 1) * params.limit;
+  const paginated = filtered.slice(offset, offset + params.limit);
+
+  return {
+    data: paginated.map((doc) => ({
+      student_id: doc.id,
+      ...doc.data(),
+      created_at: doc.data().created_at.toDate().toISOString(),
+      updated_at: doc.data().updated_at.toDate().toISOString(),
+    })),
+    total: totalDocs,
+    total_pages: totalPages,
+    has_next_page: hasNextPage,
+    has_previous_page: hasPreviousPage,
+  };
 }
 
 export async function getAllStudents(params?: { search?: string; department?: string }) {

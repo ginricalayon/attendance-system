@@ -25,3 +25,9 @@ export enum EventTypes {
   LOGIN = "login",
   LOGOUT = "logout",
 }
+
+export enum AttendanceStatus {
+  NOT_LOGIN = "not_login",
+  NOT_LOGOUT = "not_logout",
+  COMPLETE = "complete",
+}

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useStudents } from "@/app/hooks/students/use-students";
+import { useSettings } from "@/app/hooks/settings/use-settings";
 import { IGetStudentsQuery } from "@/app/lib/schema/student.schema";
-import { DBCollections, OrderBy } from "@/app/lib/schema/enums.schema";
+import { AttendanceStatus, OrderBy } from "@/app/lib/schema/enums.schema";
 import {
   Table,
   TableBody,
@@ -22,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, Search, Filter, Hash, UserCircle2, Building2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Search, Filter, Hash, UserCircle2, Building2, ClipboardCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -33,11 +34,16 @@ interface StudentTableProps {
 }
 
 export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTableProps) {
+  const { data: settingsData } = useSettings();
+  const eventId = settingsData?.data?.event_id;
+
   const [params, setParams] = useState<IGetStudentsQuery>({
     page: 1,
     limit: 20,
     search: undefined,
     department: undefined,
+    attendance_status: undefined,
+    event_id: undefined,
     sort_by: "created_at",
     order_by: OrderBy.DESC,
   });
@@ -59,6 +65,17 @@ export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTable
       page: 1,
     });
     onFiltersChange?.({ search: params.search, department });
+  };
+
+  const handleAttendanceStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const attendance_status = value === "" ? undefined : (value as AttendanceStatus);
+    setParams({
+      ...params,
+      attendance_status,
+      event_id: attendance_status ? eventId : undefined,
+      page: 1,
+    });
   };
 
   const students = data?.data || [];
@@ -89,6 +106,23 @@ export function StudentTable({ onEdit, onDelete, onFiltersChange }: StudentTable
             <option value="CBAA">CBAA</option>
             <option value="COHM">COHM</option>
             <option value="SHS">SHS</option>
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground h-4 w-4"><path d="M4.18179 6.18181C4.35753 6.00608 4.64245 6.00608 4.81819 6.18181L7.49999 8.86362L10.1818 6.18181C10.3575 6.00608 10.6424 6.00608 10.8182 6.18181C10.9939 6.35755 10.9939 6.64247 10.8182 6.81821L7.81819 9.81821C7.73379 9.9026 7.61934 9.95001 7.49999 9.95001C7.38064 9.95001 7.26618 9.9026 7.18179 9.81821L4.18179 6.81821C4.00605 6.64247 4.00605 6.35755 4.18179 6.18181Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+          </div>
+        </div>
+        <div className="relative w-full md:max-w-[200px]">
+          <ClipboardCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <select
+            className="flex h-10 w-full items-center justify-between rounded-xl border border-primary/20 bg-background/50 pl-9 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 appearance-none transition-shadow cursor-pointer hover:bg-background"
+            value={params.attendance_status || ""}
+            onChange={handleAttendanceStatusChange}
+            disabled={!eventId}
+          >
+            <option value="">All Status</option>
+            <option value="not_login">Not Logged In</option>
+            <option value="not_logout">Not Logged Out</option>
+            <option value="complete">Complete (Login & Logout)</option>
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-muted-foreground h-4 w-4"><path d="M4.18179 6.18181C4.35753 6.00608 4.64245 6.00608 4.81819 6.18181L7.49999 8.86362L10.1818 6.18181C10.3575 6.00608 10.6424 6.00608 10.8182 6.18181C10.9939 6.35755 10.9939 6.64247 10.8182 6.81821L7.81819 9.81821C7.73379 9.9026 7.61934 9.95001 7.49999 9.95001C7.38064 9.95001 7.26618 9.9026 7.18179 9.81821L4.18179 6.81821C4.00605 6.64247 4.00605 6.35755 4.18179 6.18181Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>

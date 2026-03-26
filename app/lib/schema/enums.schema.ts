@@ -4,6 +4,7 @@ export enum DBCollections {
   SETTINGS = "settings",
   ATTENDANCE = "attendance",
   EVENT_STATS = "event_stats",
+  RAFFLE_WINNERS = "raffle_winners",
 }
 
 export enum Departments {

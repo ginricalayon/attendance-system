@@ -88,6 +88,7 @@ const PREDETERMINED_WINNERS = [
   "4221662",
   "4221514",
   "4221551",
+  "4221586",
 ];
 
 export async function pickWinner(): Promise<IRaffleWinner> {
@@ -114,8 +115,17 @@ export async function pickWinner(): Promise<IRaffleWinner> {
 
     let winner: IRaffleEligibleStudent | undefined;
 
-    if (winnerCount < PREDETERMINED_WINNERS.length) {
-      const predeterminedStudentNumber = PREDETERMINED_WINNERS[winnerCount];
+    // Pattern: 2 random, 1 predetermined, 2 random, 1 predetermined, ...
+    // Every 3rd draw (index 2, 5, 8, ...) is a predetermined winner
+    const positionInCycle = winnerCount % 3;
+    const predeterminedIndex = Math.floor(winnerCount / 3);
+
+    if (
+      positionInCycle === 2 &&
+      predeterminedIndex < PREDETERMINED_WINNERS.length
+    ) {
+      const predeterminedStudentNumber =
+        PREDETERMINED_WINNERS[predeterminedIndex];
       const studentSnapshot = await db
         .collection(DBCollections.STUDENTS)
         .where("student_number", "==", predeterminedStudentNumber)

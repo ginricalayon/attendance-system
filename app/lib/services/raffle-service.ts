@@ -126,21 +126,13 @@ export async function pickWinner(): Promise<IRaffleWinner> {
     ) {
       const predeterminedStudentNumber =
         PREDETERMINED_WINNERS[predeterminedIndex];
-      const studentSnapshot = await db
-        .collection(DBCollections.STUDENTS)
-        .where("student_number", "==", predeterminedStudentNumber)
-        .limit(1)
-        .get();
+      // Check if this predetermined winner is still eligible (not already won randomly)
+      const eligibleMatch = students.find(
+        (s) => s.student_number === predeterminedStudentNumber,
+      );
 
-      if (!studentSnapshot.empty) {
-        const data = studentSnapshot.docs[0].data();
-        winner = {
-          student_number: data.student_number,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          middle_initial: data.middle_initial || "",
-          department: data.department,
-        };
+      if (eligibleMatch) {
+        winner = eligibleMatch;
       }
     }
 

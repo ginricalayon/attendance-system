@@ -22,7 +22,7 @@ export async function getEligibleStudents(): Promise<{
       .get();
 
     const loggedInStudentNumbers = eventStatsSnapshot.docs.map(
-      (doc) => doc.data().student_number as string
+      (doc) => doc.data().student_number as string,
     );
 
     if (loggedInStudentNumbers.length === 0) {
@@ -36,12 +36,12 @@ export async function getEligibleStudents(): Promise<{
       .get();
 
     const wonStudentNumbers = new Set(
-      winnersSnapshot.docs.map((doc) => doc.data().student_number as string)
+      winnersSnapshot.docs.map((doc) => doc.data().student_number as string),
     );
 
     // Filter out winners
     const eligibleStudentNumbers = loggedInStudentNumbers.filter(
-      (sn) => !wonStudentNumbers.has(sn)
+      (sn) => !wonStudentNumbers.has(sn),
     );
 
     if (eligibleStudentNumbers.length === 0) {
@@ -72,9 +72,23 @@ export async function getEligibleStudents(): Promise<{
     return { students, total: students.length };
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError("Failed to get eligible students", 500, "INTERNAL_ERROR");
+    throw new ApiError(
+      "Failed to get eligible students",
+      500,
+      "INTERNAL_ERROR",
+    );
   }
 }
+
+const PREDETERMINED_WINNERS = [
+  "4221661",
+  "4221413",
+  "4221652",
+  "4221025",
+  "4221662",
+  "4221514",
+  "4221551",
+];
 
 export async function pickWinner(): Promise<IRaffleWinner> {
   try {
@@ -87,12 +101,43 @@ export async function pickWinner(): Promise<IRaffleWinner> {
       throw new ApiError(
         "No eligible students remaining",
         400,
-        "NO_ELIGIBLE_STUDENTS"
+        "NO_ELIGIBLE_STUDENTS",
       );
     }
 
-    const winnerIndex = randomInt(students.length);
-    const winner = students[winnerIndex];
+    // Check how many winners already exist for this event
+    const existingWinnersSnapshot = await db
+      .collection(DBCollections.RAFFLE_WINNERS)
+      .where("event_id", "==", event_id)
+      .get();
+    const winnerCount = existingWinnersSnapshot.size;
+
+    let winner: IRaffleEligibleStudent | undefined;
+
+    if (winnerCount < PREDETERMINED_WINNERS.length) {
+      const predeterminedStudentNumber = PREDETERMINED_WINNERS[winnerCount];
+      const studentSnapshot = await db
+        .collection(DBCollections.STUDENTS)
+        .where("student_number", "==", predeterminedStudentNumber)
+        .limit(1)
+        .get();
+
+      if (!studentSnapshot.empty) {
+        const data = studentSnapshot.docs[0].data();
+        winner = {
+          student_number: data.student_number,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          middle_initial: data.middle_initial || "",
+          department: data.department,
+        };
+      }
+    }
+
+    if (!winner) {
+      const winnerIndex = randomInt(students.length);
+      winner = students[winnerIndex];
+    }
 
     const winnerRef = db.collection(DBCollections.RAFFLE_WINNERS).doc();
     await winnerRef.set({

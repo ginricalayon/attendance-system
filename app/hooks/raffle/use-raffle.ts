@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getEligibleStudents,
-  pickWinner,
+  pickWinners,
   getWinners,
 } from "@/app/services/raffle.service";
 
@@ -18,11 +18,11 @@ export function useEligibleStudents() {
   });
 }
 
-export function usePickWinner() {
+export function usePickWinners() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: pickWinner,
+    mutationFn: pickWinners,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: raffleKeys.eligible() });
       queryClient.invalidateQueries({ queryKey: raffleKeys.winners() });

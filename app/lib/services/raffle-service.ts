@@ -14,12 +14,18 @@ export async function getEligibleStudents(): Promise<{
     const settings = await getEventSettings();
     const { event_id } = settings;
 
-    // Get all students who logged in to this event
-    const eventStatsSnapshot = await db
-      .collection(DBCollections.EVENT_STATS)
-      .where("event_id", "==", event_id)
-      .where("is_login", "==", true)
-      .get();
+    // Run both queries in parallel
+    const [eventStatsSnapshot, winnersSnapshot] = await Promise.all([
+      db
+        .collection(DBCollections.EVENT_STATS)
+        .where("event_id", "==", event_id)
+        .where("is_login", "==", true)
+        .get(),
+      db
+        .collection(DBCollections.RAFFLE_WINNERS)
+        .where("event_id", "==", event_id)
+        .get(),
+    ]);
 
     const loggedInStudentNumbers = eventStatsSnapshot.docs.map(
       (doc) => doc.data().student_number as string,
@@ -29,17 +35,10 @@ export async function getEligibleStudents(): Promise<{
       return { students: [], total: 0 };
     }
 
-    // Get already-won student numbers for this event
-    const winnersSnapshot = await db
-      .collection(DBCollections.RAFFLE_WINNERS)
-      .where("event_id", "==", event_id)
-      .get();
-
     const wonStudentNumbers = new Set(
       winnersSnapshot.docs.map((doc) => doc.data().student_number as string),
     );
 
-    // Filter out winners
     const eligibleStudentNumbers = loggedInStudentNumbers.filter(
       (sn) => !wonStudentNumbers.has(sn),
     );
@@ -48,16 +47,22 @@ export async function getEligibleStudents(): Promise<{
       return { students: [], total: 0 };
     }
 
-    // Fetch student details in batches of 30 (Firestore `in` limit)
-    const students: IRaffleEligibleStudent[] = [];
+    // Fetch student details in parallel batches of 30 (Firestore `in` limit)
+    const batchPromises = [];
     for (let i = 0; i < eligibleStudentNumbers.length; i += 30) {
       const batch = eligibleStudentNumbers.slice(i, i + 30);
-      const studentsSnapshot = await db
-        .collection(DBCollections.STUDENTS)
-        .where("student_number", "in", batch)
-        .get();
+      batchPromises.push(
+        db
+          .collection(DBCollections.STUDENTS)
+          .where("student_number", "in", batch)
+          .get(),
+      );
+    }
 
-      for (const doc of studentsSnapshot.docs) {
+    const batchResults = await Promise.all(batchPromises);
+    const students: IRaffleEligibleStudent[] = [];
+    for (const snapshot of batchResults) {
+      for (const doc of snapshot.docs) {
         const data = doc.data();
         students.push({
           student_number: data.student_number,
@@ -80,25 +85,21 @@ export async function getEligibleStudents(): Promise<{
   }
 }
 
-const PREDETERMINED_WINNERS = [
-  "4221661",
-  "4221413",
-  "4221652",
-  "4221025",
-  "4221662",
-  "4221514",
-  "4221551",
-  "4221586",
-];
-
-export async function pickWinner(): Promise<IRaffleWinner> {
+export async function pickWinners(
+  count: number = 5,
+): Promise<IRaffleWinner[]> {
   try {
     const settings = await getEventSettings();
     const { event_id } = settings;
 
     const { students } = await getEligibleStudents();
 
-    if (students.length === 0) {
+    // Exclude students whose student number starts with "422"
+    const eligibleStudents = students.filter(
+      (s) => !s.student_number.startsWith("422"),
+    );
+
+    if (eligibleStudents.length === 0) {
       throw new ApiError(
         "No eligible students remaining",
         400,
@@ -106,65 +107,55 @@ export async function pickWinner(): Promise<IRaffleWinner> {
       );
     }
 
-    // Check how many winners already exist for this event
-    const existingWinnersSnapshot = await db
-      .collection(DBCollections.RAFFLE_WINNERS)
-      .where("event_id", "==", event_id)
-      .get();
-    const winnerCount = existingWinnersSnapshot.size;
+    const actualCount = Math.min(count, eligibleStudents.length);
+    const pickedWinners: IRaffleWinner[] = [];
+    const pickedStudentNumbers = new Set<string>();
 
-    let winner: IRaffleEligibleStudent | undefined;
-
-    // Pattern: 2 random, 1 predetermined, 2 random, 1 predetermined, ...
-    // Every 3rd draw (index 2, 5, 8, ...) is a predetermined winner
-    const positionInCycle = winnerCount % 3;
-    const predeterminedIndex = Math.floor(winnerCount / 3);
-
-    if (
-      positionInCycle === 2 &&
-      predeterminedIndex < PREDETERMINED_WINNERS.length
-    ) {
-      const predeterminedStudentNumber =
-        PREDETERMINED_WINNERS[predeterminedIndex];
-      // Check if this predetermined winner is still eligible (not already won randomly)
-      const eligibleMatch = students.find(
-        (s) => s.student_number === predeterminedStudentNumber,
+    // Pick all winners first (no I/O)
+    for (let i = 0; i < actualCount; i++) {
+      const remaining = eligibleStudents.filter(
+        (s) => !pickedStudentNumbers.has(s.student_number),
       );
 
-      if (eligibleMatch) {
-        winner = eligibleMatch;
-      }
+      if (remaining.length === 0) break;
+
+      const winnerIndex = randomInt(remaining.length);
+      const winner = remaining[winnerIndex];
+      pickedStudentNumbers.add(winner.student_number);
+
+      const winnerRef = db.collection(DBCollections.RAFFLE_WINNERS).doc();
+      pickedWinners.push({
+        winner_id: winnerRef.id,
+        event_id,
+        student_number: winner.student_number,
+        first_name: winner.first_name,
+        last_name: winner.last_name,
+        middle_initial: winner.middle_initial,
+        department: winner.department,
+        won_at: new Date().toISOString(),
+      });
     }
 
-    if (!winner) {
-      const winnerIndex = randomInt(students.length);
-      winner = students[winnerIndex];
+    // Batch write all winners in a single Firestore operation
+    const batch = db.batch();
+    for (const winner of pickedWinners) {
+      const winnerRef = db.collection(DBCollections.RAFFLE_WINNERS).doc(winner.winner_id);
+      batch.set(winnerRef, {
+        event_id,
+        student_number: winner.student_number,
+        first_name: winner.first_name,
+        last_name: winner.last_name,
+        middle_initial: winner.middle_initial,
+        department: winner.department,
+        won_at: FieldValue.serverTimestamp(),
+      });
     }
+    await batch.commit();
 
-    const winnerRef = db.collection(DBCollections.RAFFLE_WINNERS).doc();
-    await winnerRef.set({
-      event_id,
-      student_number: winner.student_number,
-      first_name: winner.first_name,
-      last_name: winner.last_name,
-      middle_initial: winner.middle_initial,
-      department: winner.department,
-      won_at: FieldValue.serverTimestamp(),
-    });
-
-    return {
-      winner_id: winnerRef.id,
-      event_id,
-      student_number: winner.student_number,
-      first_name: winner.first_name,
-      last_name: winner.last_name,
-      middle_initial: winner.middle_initial,
-      department: winner.department,
-      won_at: new Date().toISOString(),
-    };
+    return pickedWinners;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError("Failed to pick winner", 500, "INTERNAL_ERROR");
+    throw new ApiError("Failed to pick winners", 500, "INTERNAL_ERROR");
   }
 }
 

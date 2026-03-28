@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   useEligibleStudents,
-  usePickWinner,
+  usePickWinners,
   useRaffleWinners,
 } from "@/app/hooks/raffle/use-raffle";
 import { useSettings } from "@/app/hooks/settings/use-settings";
@@ -22,11 +22,14 @@ export default function RafflePage() {
   const { data: settingsData, isLoading: settingsLoading, isError: settingsError } = useSettings();
   const { data: eligibleData, isLoading: eligibleLoading } = useEligibleStudents();
   const { data: winnersData, isLoading: winnersLoading } = useRaffleWinners();
-  const pickWinnerMutation = usePickWinner();
+  const pickWinnersMutation = usePickWinners();
 
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentWinner, setCurrentWinner] = useState<IRaffleEligibleStudent | null>(null);
+  const [currentWinnerIndex, setCurrentWinnerIndex] = useState(0);
+  const [allDrawnWinners, setAllDrawnWinners] = useState<IRaffleEligibleStudent[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const pendingWinnersRef = useRef<IRaffleEligibleStudent[]>([]);
 
   const students = eligibleData?.data?.students ?? [];
   const eligibleCount = eligibleData?.data?.total ?? 0;
@@ -38,27 +41,50 @@ export default function RafflePage() {
 
     setShowConfetti(false);
     setCurrentWinner(null);
+    setCurrentWinnerIndex(0);
+    setAllDrawnWinners([]);
     setIsSpinning(true);
+    pendingWinnersRef.current = [];
 
     try {
-      const result = await pickWinnerMutation.mutateAsync();
-      const winner = result.data;
-      setCurrentWinner({
-        student_number: winner.student_number,
-        first_name: winner.first_name,
-        last_name: winner.last_name,
-        middle_initial: winner.middle_initial,
-        department: winner.department,
-      });
+      const result = await pickWinnersMutation.mutateAsync();
+      const drawnWinners = result.data.map((w) => ({
+        student_number: w.student_number,
+        first_name: w.first_name,
+        last_name: w.last_name,
+        middle_initial: w.middle_initial,
+        department: w.department,
+      }));
+
+      setAllDrawnWinners(drawnWinners);
+      pendingWinnersRef.current = drawnWinners;
+      // Show the first winner in slot machine
+      setCurrentWinnerIndex(0);
+      setCurrentWinner(drawnWinners[0]);
     } catch {
       setIsSpinning(false);
-      toast.error("Failed to pick a winner. Please try again.");
+      toast.error("Failed to pick winners. Please try again.");
     }
   };
 
   const handleAnimationComplete = useCallback(() => {
-    setIsSpinning(false);
-    setShowConfetti(true);
+    const pending = pendingWinnersRef.current;
+    setCurrentWinnerIndex((prev) => {
+      const nextIndex = prev + 1;
+      if (nextIndex < pending.length) {
+        // Brief pause then show next winner
+        setTimeout(() => {
+          setCurrentWinner(pending[nextIndex]);
+          setCurrentWinnerIndex(nextIndex);
+        }, 300);
+        return prev;
+      } else {
+        // All winners revealed
+        setIsSpinning(false);
+        setShowConfetti(true);
+        return prev;
+      }
+    });
   }, []);
 
   const handleDismissConfetti = useCallback(() => {
@@ -81,7 +107,7 @@ export default function RafflePage() {
             <Dices className="h-6 w-6 text-blue-500 animate-pulse" />
           </div>
           <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
-            Randomly pick a winner from students who logged in to the event.
+            Randomly pick 5 winners from students who logged in to the event.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -127,6 +153,7 @@ export default function RafflePage() {
             winner={currentWinner}
             isSpinning={isSpinning}
             onComplete={handleAnimationComplete}
+            winnerLabel={allDrawnWinners.length > 0 ? `Winner ${currentWinnerIndex + 1} of ${allDrawnWinners.length}` : undefined}
           />
 
           {/* Draw Button */}
@@ -142,7 +169,7 @@ export default function RafflePage() {
                 ? "Drawing..."
                 : eligibleCount === 0
                   ? "No Eligible Students"
-                  : "Draw Winner"}
+                  : "Draw 5 Winners"}
             </Button>
           </div>
 
@@ -159,7 +186,7 @@ export default function RafflePage() {
 
       {/* Confetti Overlay */}
       <ConfettiCelebration
-        winner={currentWinner}
+        winners={allDrawnWinners}
         show={showConfetti}
         onDismiss={handleDismissConfetti}
       />

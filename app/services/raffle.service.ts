@@ -12,9 +12,9 @@ export async function getEligibleStudents(): Promise<{
   return response.data;
 }
 
-export async function pickWinner(): Promise<{
+export async function pickWinners(): Promise<{
   success: boolean;
-  data: IRaffleWinner;
+  data: IRaffleWinner[];
 }> {
   const response = await api.post("/raffle/pick");
   return response.data;

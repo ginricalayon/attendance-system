@@ -8,6 +8,7 @@ interface SlotMachineProps {
   winner: IRaffleEligibleStudent | null;
   isSpinning: boolean;
   onComplete: () => void;
+  winnerLabel?: string;
 }
 
 export function SlotMachine({
@@ -15,6 +16,7 @@ export function SlotMachine({
   winner,
   isSpinning,
   onComplete,
+  winnerLabel,
 }: SlotMachineProps) {
   const [displayedStudent, setDisplayedStudent] =
     useState<IRaffleEligibleStudent | null>(null);
@@ -64,11 +66,11 @@ export function SlotMachine({
     }
 
     let step = 0;
-    const totalSteps = 10;
+    const totalSteps = 3;
 
     const decelerate = () => {
       step++;
-      const speed = 80 + (step / totalSteps) * 280;
+      const speed = 40 + (step / totalSteps) * 100;
 
       if (step < totalSteps) {
         const list = studentsRef.current;
@@ -85,7 +87,7 @@ export function SlotMachine({
       }
     };
 
-    intervalRef.current = setTimeout(decelerate, 80);
+    intervalRef.current = setTimeout(decelerate, 40);
 
     return () => {
       if (intervalRef.current) {
@@ -116,7 +118,7 @@ export function SlotMachine({
           <div className="size-3 rounded-full bg-yellow-500/80" />
           <div className="size-3 rounded-full bg-green-500/80" />
           <span className="ml-3 text-xs font-mono text-muted-foreground tracking-wider">
-            raffle://draw
+            {winnerLabel ? `raffle://draw — ${winnerLabel}` : "raffle://draw"}
           </span>
         </div>
 

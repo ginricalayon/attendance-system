@@ -56,10 +56,8 @@ export function ConfettiCelebration({
   useEffect(() => {
     if (show && winners.length > 0) {
       fireConfetti();
-      const timer = setTimeout(onDismiss, 10000);
-      return () => clearTimeout(timer);
     }
-  }, [show, winners, fireConfetti, onDismiss]);
+  }, [show, winners, fireConfetti]);
 
   if (!show || winners.length === 0) return null;
 
